@@ -12,6 +12,16 @@ struct animation_data
 
 void nebula_animation(animation_data &nebula_object);
 
+void create_nebulae(const int number_of_nebulae, animation_data nebulae[6], Texture2D &nebula, int window_dimensions[2]);
+
+void update_nebulae_animation(const int number_of_nebulae, animation_data nebulae[6], float dT);
+
+void update_scarfy_animation(animation_data &scarfy_data, float dT, bool is_in_air);
+
+void is_object_airborne(animation_data &scarfy_data, int window_dimensions[2], int &velocity, bool &is_in_air, const int gravity, float dT);
+
+void draw_nebulae(const int number_of_nebulae, const Texture2D &nebula, animation_data nebulae[6], int nebula_velocity, float dT);
+
 int main()
 {
     // window dimensions
@@ -44,26 +54,14 @@ int main()
     // initialise nebula 
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
 
-    const int number_of_nebulae{3};
+    const int number_of_nebulae{6};
     animation_data nebulae[number_of_nebulae]{};
-    
-    for (int i = 0; i < number_of_nebulae; i++)
-    {
-        nebulae[i].rectangle.x = 0.0;
-        nebulae[i].rectangle.y = 0.0;
-        nebulae[i].rectangle.width = nebula.width/8;
-        nebulae[i].rectangle.height = nebula.height/8;
-        nebulae[i].position.x = window_dimensions[0] + i*300;
-        nebulae[i].position.y = window_dimensions[1] - nebula.height/8;
-        nebulae[i].frame = 0;
-        nebulae[i].running_time = 0.0;
-        nebulae[i].update_time = 1.0/16.0;
-    }
 
-
+    create_nebulae(number_of_nebulae, nebulae, nebula, window_dimensions);
 
     SetTargetFPS(60);
-    while (!WindowShouldClose()){
+    while (!WindowShouldClose())
+    {
 
         // delta time, time since last frame
         float dT{GetFrameTime()};
@@ -73,42 +71,15 @@ int main()
         
         // game logic begins
         
-        if(scarfy_data.position.y >= window_dimensions[1] - scarfy_data.rectangle.height)
-        {
-            // rectangle on ground
-            velocity = 0;
-            is_in_air = false;
-        }
-        else
-        {
-            // rectangle in air
-            velocity += gravity * dT;
-            is_in_air = true;
-        }
+        is_object_airborne(scarfy_data, window_dimensions, velocity, is_in_air, gravity, dT);
 
 
         // update scarfy animation frame
-        scarfy_data.running_time += dT;
-        
-        if(scarfy_data.running_time>= scarfy_data.update_time && !is_in_air)
-        {
-            scarfy_data.rectangle.x = scarfy_data.frame*scarfy_data.rectangle.width;
-            scarfy_data.frame++;
-            if (scarfy_data.frame>5)
-                {
-                    scarfy_data.frame = 0;
-                }
-            scarfy_data.running_time = 0;
-        }
-        
-        for(int i = 0; i<number_of_nebulae; i++)
-        {
-            nebulae[i].running_time += dT;
-            nebula_animation(nebulae[i]);
-            DrawTextureRec(nebula, nebulae[i].rectangle, nebulae[i].position, WHITE);
-            nebulae[i].position.x += nebula_velocity * dT;
-        }
+        update_scarfy_animation(scarfy_data, dT, is_in_air);
 
+        update_nebulae_animation(number_of_nebulae, nebulae, dT);
+
+        draw_nebulae(number_of_nebulae, nebula, nebulae, nebula_velocity, dT);
 
         // draw scarfy
         DrawTextureRec(scarfy, scarfy_data.rectangle, scarfy_data.position, WHITE);
@@ -127,6 +98,81 @@ int main()
     UnloadTexture(scarfy);
     UnloadTexture(nebula);
     CloseWindow();
+}
+
+void draw_nebulae(const int number_of_nebulae, const Texture2D &nebula, animation_data nebulae[6], int nebula_velocity, float dT)
+{
+    for (int i = 0; i < number_of_nebulae; i++)
+    {
+        DrawTextureRec(nebula, nebulae[i].rectangle, nebulae[i].position, WHITE);
+        nebulae[i].position.x += nebula_velocity * dT;
+    }
+}
+
+void is_object_airborne(animation_data &scarfy_data, int  window_dimensions[2], int &velocity, bool &is_in_air, const int gravity, float dT)
+{
+if(scarfy_data.position.y >= window_dimensions[1] - scarfy_data.rectangle.height)
+        {
+            // rectangle on ground
+            velocity = 0;
+            is_in_air = false;
+
+            void update_scarfy_animation(animation_data & scarfy_data, float dT, bool is_in_air)
+            {
+                scarfy_data.running_time += dT;
+
+                if (scarfy_data.running_time >= scarfy_data.update_time && !is_in_air)
+                {
+                    scarfy_data.rectangle.x = scarfy_data.frame * scarfy_data.rectangle.width;
+                    scarfy_data.frame++;
+
+                    void update_nebulae_animation(const int number_of_nebulae, animation_data nebulae[6], float dT)
+                    {
+                        for (int i = 0; i < number_of_nebulae; i++)
+                        {
+                            nebulae[i].running_time += dT;
+                            if (nebulae[i].running_time >= nebulae[i].update_time)
+                            {
+                                nebulae[i].rectangle.x = nebulae[i].frame * nebulae[i].rectangle.width;
+                                nebulae[i].frame++;
+                                if (nebulae[i].frame > 7)
+                                {
+                                    nebulae[i].frame = 0;
+                                }
+                                nebulae[i].running_time = 0;
+                            }
+                        }
+                    }
+                    if (scarfy_data.frame > 5)
+                    {
+                        scarfy_data.frame = 0;
+                    }
+                    scarfy_data.running_time = 0;
+                }
+            }
+        }
+        else
+        {
+            // rectangle in air
+            velocity += gravity * dT;
+            is_in_air = true;
+        }
+}
+
+void create_nebulae(const int number_of_nebulae, animation_data nebulae[6], Texture2D &nebula, int window_dimensions[2])
+{
+    for (int i = 0; i < number_of_nebulae; i++)
+    {
+        nebulae[i].rectangle.x = 0.0;
+        nebulae[i].rectangle.y = 0.0;
+        nebulae[i].rectangle.width = nebula.width / 8;
+        nebulae[i].rectangle.height = nebula.height / 8;
+        nebulae[i].position.x = window_dimensions[0] + i * 300;
+        nebulae[i].position.y = window_dimensions[1] - nebula.height / 8;
+        nebulae[i].frame = 0;
+        nebulae[i].running_time = 0.0;
+        nebulae[i].update_time = 1.0 / 16.0;
+    }
 }
 
 void nebula_animation(animation_data &obstacle)
