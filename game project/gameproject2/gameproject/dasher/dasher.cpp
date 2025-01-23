@@ -10,17 +10,27 @@ struct animation_data
 
 };
 
-void nebula_animation(animation_data &nebula_object);
+bool is_on_ground(animation_data data, int window_height)
+{
+    return data.position.y >= window_height - data.rectangle.height;
+}
 
-void create_nebulae(const int number_of_nebulae, animation_data nebulae[6], Texture2D &nebula, int window_dimensions[2]);
+animation_data update_animation_data(animation_data data, float delta_time, int maximum_frame)
+{
+    data.running_time += delta_time;
+    if (data.running_time >= data.update_time)
+    {
+        data.running_time = 0.0;
+        data.rectangle.x = data.frame*data.rectangle.width;
+        data.frame++;
+        if(data.frame > maximum_frame)
+        {
+            data.frame = 0;
+        }
+    }
+    return data;
+}
 
-void update_nebulae_animation(const int number_of_nebulae, animation_data nebulae[6], float dT);
-
-void update_scarfy_animation(animation_data &scarfy_data, float dT, bool is_in_air);
-
-void is_object_airborne(animation_data &scarfy_data, int window_dimensions[2], int &velocity, bool &is_in_air, const int gravity, float dT);
-
-void draw_nebulae(const int number_of_nebulae, const Texture2D &nebula, animation_data nebulae[6], int nebula_velocity, float dT);
 
 int main()
 {
@@ -42,6 +52,16 @@ int main()
     int nebula_velocity{-200};
 
 
+    // background initialisation 
+    Texture2D array_of_backgrounds[3]{};
+    array_of_backgrounds[0] = LoadTexture("textures/far-buildings.png");
+    array_of_backgrounds[1] = LoadTexture("textures/back-buildings.png");
+    array_of_backgrounds[2] = LoadTexture("textures/foreground.png");
+    float background_x_positions[3]{};
+    int background_velocity[3]{20, 40, 80};
+    int number_of_backgrounds{3};
+    
+    
     // initialise scarfy
     Texture2D scarfy = LoadTexture("textures/scarfy.png");
     animation_data scarfy_data{
@@ -53,103 +73,65 @@ int main()
 
     // initialise nebula 
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
-
-    const int number_of_nebulae{6};
+    const int number_of_nebulae{2};
     animation_data nebulae[number_of_nebulae]{};
 
-    create_nebulae(number_of_nebulae, nebulae, nebula, window_dimensions);
+    // create_nebulae(number_of_nebulae, nebulae, nebula, window_dimensions);
+     for (int i = 0; i < number_of_nebulae; i++)
+        {
+            nebulae[i].rectangle.x = 0.0;
+            nebulae[i].rectangle.y = 0.0;
+            nebulae[i].rectangle.width = nebula.width / 8;
+            nebulae[i].rectangle.height = nebula.height / 8;
+            nebulae[i].position.x = window_dimensions[0] + i * 300;
+            nebulae[i].position.y = window_dimensions[1] - nebula.height / 8;
+            nebulae[i].frame = 0;
+            nebulae[i].running_time = 0.0;
+            nebulae[i].update_time = 1.0 / 16.0;
+        }
+
+    float finish_line{ nebulae[number_of_nebulae - 1].position.x};
 
     SetTargetFPS(60);
+
     while (!WindowShouldClose())
     {
 
         // delta time, time since last frame
         float dT{GetFrameTime()};
+
         // start drawing
         BeginDrawing();
         ClearBackground(WHITE);
         
-        // game logic begins
-        
-        is_object_airborne(scarfy_data, window_dimensions, velocity, is_in_air, gravity, dT);
-
-
-        // update scarfy animation frame
-        update_scarfy_animation(scarfy_data, dT, is_in_air);
-
-        update_nebulae_animation(number_of_nebulae, nebulae, dT);
-
-        draw_nebulae(number_of_nebulae, nebula, nebulae, nebula_velocity, dT);
-
-        // draw scarfy
-        DrawTextureRec(scarfy, scarfy_data.rectangle, scarfy_data.position, WHITE);
-        
-        // jump check
-        if(IsKeyPressed(KEY_SPACE) && !is_in_air)
+        // scroll background
+        for (int i = 0; i<3; i++)
         {
-            velocity += jump_velocity;
+            background_x_positions[i] -= background_velocity[i] * dT;
+            if (background_x_positions[i] <= -array_of_backgrounds[i].width*2)
+            {
+                background_x_positions[i] = 0.0;
+            }
         }
 
-        scarfy_data.position.y += velocity * dT;
-        // game logic ends
-        // stop drawing
-        EndDrawing();
-    }
-    UnloadTexture(scarfy);
-    UnloadTexture(nebula);
-    CloseWindow();
-}
+        // draw backgrounds
 
-void draw_nebulae(const int number_of_nebulae, const Texture2D &nebula, animation_data nebulae[6], int nebula_velocity, float dT)
-{
-    for (int i = 0; i < number_of_nebulae; i++)
-    {
-        DrawTextureRec(nebula, nebulae[i].rectangle, nebulae[i].position, WHITE);
-        nebulae[i].position.x += nebula_velocity * dT;
-    }
-}
+        for(int i = 0; i<number_of_backgrounds;i++)
+        {
+            Vector2 background_position_one{background_x_positions[i],0.0};
+            Vector2 background_position_two{background_x_positions[i] + array_of_backgrounds[i].width*2,0.0};
+            DrawTextureEx(array_of_backgrounds[i], background_position_one, 0.0, 2.0, WHITE);
+            DrawTextureEx(array_of_backgrounds[i], background_position_two, 0.0, 2.0, WHITE);
+        }
 
-void is_object_airborne(animation_data &scarfy_data, int  window_dimensions[2], int &velocity, bool &is_in_air, const int gravity, float dT)
-{
-if(scarfy_data.position.y >= window_dimensions[1] - scarfy_data.rectangle.height)
+        
+        // game logic begins
+        
+        if(is_on_ground(scarfy_data, window_dimensions[1]))
         {
             // rectangle on ground
             velocity = 0;
             is_in_air = false;
-
-            void update_scarfy_animation(animation_data & scarfy_data, float dT, bool is_in_air)
-            {
-                scarfy_data.running_time += dT;
-
-                if (scarfy_data.running_time >= scarfy_data.update_time && !is_in_air)
-                {
-                    scarfy_data.rectangle.x = scarfy_data.frame * scarfy_data.rectangle.width;
-                    scarfy_data.frame++;
-
-                    void update_nebulae_animation(const int number_of_nebulae, animation_data nebulae[6], float dT)
-                    {
-                        for (int i = 0; i < number_of_nebulae; i++)
-                        {
-                            nebulae[i].running_time += dT;
-                            if (nebulae[i].running_time >= nebulae[i].update_time)
-                            {
-                                nebulae[i].rectangle.x = nebulae[i].frame * nebulae[i].rectangle.width;
-                                nebulae[i].frame++;
-                                if (nebulae[i].frame > 7)
-                                {
-                                    nebulae[i].frame = 0;
-                                }
-                                nebulae[i].running_time = 0;
-                            }
-                        }
-                    }
-                    if (scarfy_data.frame > 5)
-                    {
-                        scarfy_data.frame = 0;
-                    }
-                    scarfy_data.running_time = 0;
-                }
-            }
         }
         else
         {
@@ -157,34 +139,85 @@ if(scarfy_data.position.y >= window_dimensions[1] - scarfy_data.rectangle.height
             velocity += gravity * dT;
             is_in_air = true;
         }
-}
 
-void create_nebulae(const int number_of_nebulae, animation_data nebulae[6], Texture2D &nebula, int window_dimensions[2])
-{
-    for (int i = 0; i < number_of_nebulae; i++)
-    {
-        nebulae[i].rectangle.x = 0.0;
-        nebulae[i].rectangle.y = 0.0;
-        nebulae[i].rectangle.width = nebula.width / 8;
-        nebulae[i].rectangle.height = nebula.height / 8;
-        nebulae[i].position.x = window_dimensions[0] + i * 300;
-        nebulae[i].position.y = window_dimensions[1] - nebula.height / 8;
-        nebulae[i].frame = 0;
-        nebulae[i].running_time = 0.0;
-        nebulae[i].update_time = 1.0 / 16.0;
-    }
-}
+        if(IsKeyPressed(KEY_SPACE) && !is_in_air)
+            {
+                velocity += jump_velocity;
+            }
+   
 
-void nebula_animation(animation_data &obstacle)
-{
-    if (obstacle.running_time >= obstacle.update_time)
-    {
-        obstacle.rectangle.x = obstacle.frame * obstacle.rectangle.width;
-        obstacle.frame++;
-        if (obstacle.frame > 7)
+        bool collision{};
+        for (animation_data nebula: nebulae)
+        {   
+            float pad{50};
+            Rectangle nebula_rec{
+                nebula.position.x + pad,
+                nebula.position.y + pad,
+                nebula.rectangle.width - 2*pad,
+                nebula.rectangle.height - 2*pad
+            };
+            Rectangle scarfy_rec{
+                scarfy_data.position.x,
+                scarfy_data.position.y,
+                scarfy_data.rectangle.width,
+                scarfy_data.rectangle.height
+            };
+
+            if (CheckCollisionRecs(nebula_rec, scarfy_rec))
+            {
+                collision = true;
+            }
+        } 
+        
+        // update scarfy animation frame
+        if(collision)
         {
-            obstacle.frame = 0;
+            DrawText("YOU LOSE", window_dimensions[0]/4,window_dimensions[1]/2,50,RED);           
+        }else if(scarfy_data.position.x >= finish_line)
+        {
+            DrawText("You win!", window_dimensions[0]/4,window_dimensions[1]/2,50,GREEN);
         }
-        obstacle.running_time = 0;
+        else
+        {  
+            if(!is_in_air)
+            {
+                scarfy_data = update_animation_data(scarfy_data, dT, 5);
+            }
+
+            for(int i = 0; i<number_of_nebulae; i++)
+            {
+                nebulae[i] = update_animation_data(nebulae[i], dT, 7);
+            }
+
+            for(int i = 0; i<number_of_nebulae; i++)
+            {
+                DrawTextureRec(nebula, nebulae[i].rectangle, nebulae[i].position, WHITE);
+                nebulae[i].position.x += nebula_velocity * dT;
+            }
+
+        
+
+            // update finish line
+            finish_line += nebula_velocity * dT;
+
+
+            // draw scarfy
+            DrawTextureRec(scarfy, scarfy_data.rectangle, scarfy_data.position, WHITE);
+            
+            // jump check
+           
+
+            scarfy_data.position.y += velocity * dT;
+            // game logic ends
+            // stop drawing
+        }
+      
+            EndDrawing();
     }
+    UnloadTexture(scarfy);
+    UnloadTexture(nebula);
+    UnloadTexture(array_of_backgrounds[0]);
+    UnloadTexture(array_of_backgrounds[1]);
+    UnloadTexture(array_of_backgrounds[2]);
+    CloseWindow();
 }
