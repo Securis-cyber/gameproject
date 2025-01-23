@@ -43,25 +43,25 @@ int main()
 
     // initialise nebula 
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
-    animation_data nebula_one{
-        {0.0,0.0,nebula.width/8,nebula.height/8}, // Rectangle rec
-        {window_dimensions[0], window_dimensions[1] - nebula.height/8}, // Vector position
-        0, // frame
-        1.0/12, // update time
-        0.0}; // running time
 
+    animation_data nebulae[2]{};
     
-    // nebula x velocity pixels/sec
-    animation_data nebula_two{
-        {0.0,0.0,nebula.width/8,nebula.height/8}, // Rectangle rec
-        {window_dimensions[0] + 300, window_dimensions[1] - nebula.height/8}, // Vector position
-        0, // frame
-        1.0/16, // update time
-        0.0}; // running time
+    for (int i = 0; i < 2; i++)
+    {
+        nebulae[i].rectangle.x = 0.0;
+        nebulae[i].rectangle.y = 0.0;
+        nebulae[i].rectangle.width = nebula.width/8;
+        nebulae[i].rectangle.height = nebula.height/8;
+        nebulae[i].position.y = window_dimensions[1] - nebula.height/8;
+        nebulae[i].frame = 0;
+        nebulae[i].running_time = 0.0;
+        nebulae[i].update_time = 1.0/16.0;
+    }
 
-    animation_data nebulae[2]{nebula_one, nebula_two};
-    
- 
+    nebulae[0].position.x = window_dimensions[0];
+    nebulae[1].position.x = window_dimensions[0] + 300; 
+
+
     SetTargetFPS(60);
     while (!WindowShouldClose()){
 
@@ -107,17 +107,7 @@ int main()
         // update nebula animation frame
         nebula_animation(nebulae[0]);
         nebula_animation(nebulae[1]);
-        // if(nebula_two.running_time>= nebula_two.update_time)
-        // {
-        //     nebula_two.rectangle.x = nebula_two.frame*nebula_two.rectangle.width; 
-        //     nebula_two.frame++;
-        //     if (nebula_two.frame>7)
-        //         {
-        //             nebula_two.frame = 0;
-        //         }
-        //     nebula_two.running_time = 0;
-        // }
-
+     
         // draw nebula
         DrawTextureRec(nebula, nebulae[0].rectangle, nebulae[0].position, WHITE);
         // draw nebula2
