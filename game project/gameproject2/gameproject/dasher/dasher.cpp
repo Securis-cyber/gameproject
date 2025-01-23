@@ -44,22 +44,22 @@ int main()
     // initialise nebula 
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
 
-    animation_data nebulae[2]{};
+    const int number_of_nebulae{3};
+    animation_data nebulae[number_of_nebulae]{};
     
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < number_of_nebulae; i++)
     {
         nebulae[i].rectangle.x = 0.0;
         nebulae[i].rectangle.y = 0.0;
         nebulae[i].rectangle.width = nebula.width/8;
         nebulae[i].rectangle.height = nebula.height/8;
+        nebulae[i].position.x = window_dimensions[0] + i*300;
         nebulae[i].position.y = window_dimensions[1] - nebula.height/8;
         nebulae[i].frame = 0;
         nebulae[i].running_time = 0.0;
         nebulae[i].update_time = 1.0/16.0;
     }
 
-    nebulae[0].position.x = window_dimensions[0];
-    nebulae[1].position.x = window_dimensions[0] + 300; 
 
 
     SetTargetFPS(60);
@@ -101,18 +101,16 @@ int main()
             scarfy_data.running_time = 0;
         }
         
+        for(int i = 0; i<number_of_nebulae; i++)
+        {
+            nebulae[i].running_time += dT;
+            nebula_animation(nebulae[i]);
+            DrawTextureRec(nebula, nebulae[i].rectangle, nebulae[i].position, WHITE);
+            nebulae[i].position.x += nebula_velocity * dT;
+        }
 
-        nebulae[0].running_time += dT;
-        nebulae[1].running_time += dT;
-        // update nebula animation frame
-        nebula_animation(nebulae[0]);
-        nebula_animation(nebulae[1]);
-     
-        // draw nebula
-        DrawTextureRec(nebula, nebulae[0].rectangle, nebulae[0].position, WHITE);
-        // draw nebula2
-        DrawTextureRec(nebula, nebulae[1].rectangle, nebulae[1].position, RED);
-        // draw scarfyt
+
+        // draw scarfy
         DrawTextureRec(scarfy, scarfy_data.rectangle, scarfy_data.position, WHITE);
         
         // jump check
@@ -120,10 +118,6 @@ int main()
         {
             velocity += jump_velocity;
         }
-
-        nebulae[0].position.x += nebula_velocity * dT;
-
-        nebulae[1].position.x += nebula_velocity * dT;
 
         scarfy_data.position.y += velocity * dT;
         // game logic ends
