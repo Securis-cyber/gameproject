@@ -73,7 +73,7 @@ int main()
 
     // initialise nebula 
     Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
-    const int number_of_nebulae{2};
+    const int number_of_nebulae{20};
     animation_data nebulae[number_of_nebulae]{};
 
     // create_nebulae(number_of_nebulae, nebulae, nebula, window_dimensions);
