@@ -2,10 +2,12 @@
 #include "raymath.h"
 
 
-Character::Character()
+Character::Character(int window_width, int window_height)
 {
     width = texture.width/max_frames;
     height = texture.height;
+    screen_position = {(float)window_width / 2.0f - 4.0f * (0.5f * width),
+                       (float)window_height / 2.0f - 4.0f * (0.5f * height)};
 }
 
 void Character::undo_movement()
@@ -14,11 +16,11 @@ void Character::undo_movement()
 }
 
 
-void Character::set_screen_position(int window_width, int window_height)
-{
-    screen_position = {(float)window_width / 2.0f - 4.0f * (0.5f * width),
-                       (float)window_height / 2.0f - 4.0f * (0.5f * height)};
-};
+// void Character::set_screen_position(int window_width, int window_height)
+// {
+//     screen_position = {(float)window_width / 2.0f - 4.0f * (0.5f * width),
+//                        (float)window_height / 2.0f - 4.0f * (0.5f * height)};
+// };
 
 void Character::tick(float delta_time)
 {
