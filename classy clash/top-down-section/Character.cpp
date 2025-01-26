@@ -8,6 +8,12 @@ Character::Character()
     height = texture.height;
 }
 
+void Character::undo_movement()
+{
+    world_position = last_world_position;
+}
+
+
 void Character::set_screen_position(int window_width, int window_height)
 {
     screen_position = {(float)window_width / 2.0f - 4.0f * (0.5f * width),
@@ -16,6 +22,7 @@ void Character::set_screen_position(int window_width, int window_height)
 
 void Character::tick(float delta_time)
 {
+    last_world_position = world_position;
     Vector2 direction{};
     if (IsKeyDown(KEY_A))
         direction.x -= 1.0;
