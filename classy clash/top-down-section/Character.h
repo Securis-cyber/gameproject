@@ -5,7 +5,6 @@ class Character
 public:
     Character(int window_width, int window_height);
     Vector2 get_world_position() { return world_position; }
-    // void set_screen_position(int window_width, int window_height);
     void tick(float delta_time);
     void undo_movement();
 
@@ -24,4 +23,5 @@ private:
     const float speed{4.f};
     float width{};
     float height{};
+    const float scale{4.0f};
 };

@@ -6,21 +6,15 @@ Character::Character(int window_width, int window_height)
 {
     width = texture.width/max_frames;
     height = texture.height;
-    screen_position = {(float)window_width / 2.0f - 4.0f * (0.5f * width),
-                       (float)window_height / 2.0f - 4.0f * (0.5f * height)};
+    
+    screen_position = {static_cast<float>(window_width) / 2.0f - scale * (0.5f * width),
+                       static_cast<float>(window_height) / 2.0f - scale * (0.5f * height)};
 }
 
 void Character::undo_movement()
 {
     world_position = last_world_position;
 }
-
-
-// void Character::set_screen_position(int window_width, int window_height)
-// {
-//     screen_position = {(float)window_width / 2.0f - 4.0f * (0.5f * width),
-//                        (float)window_height / 2.0f - 4.0f * (0.5f * height)};
-// };
 
 void Character::tick(float delta_time)
 {
@@ -67,8 +61,8 @@ void Character::tick(float delta_time)
     Rectangle destination_rectangle{
         screen_position.x,
         screen_position.y,
-        4.0f * width,
-        4.0f * height};
+        scale * width,
+        scale * height};
 
     DrawTexturePro(texture, source_rectangle, destination_rectangle, Vector2{}, 0.f, WHITE);
 };
