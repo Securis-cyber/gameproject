@@ -1,6 +1,33 @@
 #include "raylib.h"
 #include "raymath.h"
 
+
+// struct animation_data
+// {
+//     Rectangle rectangle;
+//     Vector2 position;
+//     int frame;
+//     float update_time;
+//     float running_time;
+
+// };
+
+// animation_data update_animation_data(animation_data data, float delta_time, int maximum_frame)
+// {
+//     data.running_time += delta_time;
+//     if (data.running_time >= data.update_time)
+//     {
+//         data.running_time = 0.0;
+//         data.rectangle.x = data.frame*data.rectangle.width;
+//         data.frame++;
+//         if(data.frame > maximum_frame)
+//         {
+//             data.frame = 0;
+//         }
+//     }
+//     return data;
+// }
+
 int main(){
 
 
@@ -13,6 +40,20 @@ int main(){
 
 
     Texture2D knight = LoadTexture("characters/knight_idle_spritesheet.png");
+    Texture2D knight_idle = LoadTexture("characters/knight_idle_spritesheet.png");
+    Texture2D knight_run = LoadTexture("characters/knight_run_spritesheet.png");
+    // animation_data knight_data{};
+    // animation_data knight_data{
+    //     {0,0,(float)knight.width/6,(float)knight.height}, // Rectangle
+    //     {(float)window_dimensions[0]/2.0f - 4.0f * (0.5f * (float)knight.width/6.0f), 
+    //     (float)window_dimensions[1]/2.0f - 4.0f * (0.5f * (float)knight.height)}, // Vector2 Position
+    //     0, // Frame
+    //     1.0/12, // Update time
+    //     0.0}; // Running time
+
+
+
+
     Vector2 knight_position{ 
         (float)window_dimensions[0]/2.0f - 4.0f * (0.5f * (float)knight.width/6.0f), 
         (float)window_dimensions[1]/2.0f - 4.0f * (0.5f * (float)knight.height)};
@@ -20,12 +61,17 @@ int main(){
     // 1 = facing right, -1 = facing left
     float right_left{1.f};
 
+    float running_time{};
+    int frame{};
+    const int max_frames{6};
+    const float update_time{1.f/12.f};
+
     SetTargetFPS(60);  
 
     while (!WindowShouldClose())
     {
 
-        // float dt = GetFrameTime();
+        float dT = GetFrameTime();
 
          // start drawing
         BeginDrawing();
@@ -45,10 +91,26 @@ int main(){
             map_position = Vector2Subtract(map_position, Vector2Scale(Vector2Normalize(direction), speed));
             
             direction.x < 0.f ? right_left = -1.f : right_left = 1.f;
+            knight = knight_run;
+        }
+        else
+        {
+            knight = knight_idle;
+        }
+        
+        
+        // update animation frame
+        running_time += dT;
+        if (running_time >= update_time)
+        {
+            frame++;
+            running_time = 0.f;
+            if (frame > max_frames) frame = 0;
+            
         }
         // top left corner
         
-        Rectangle source_rectangle{0.f, 0.f, right_left * (float)knight.width/6.f, (float)knight.height};
+        Rectangle source_rectangle{frame * (float)knight.width/6.f, 0.f, right_left * (float)knight.width/6.f, (float)knight.height};
         Rectangle destination_rectangle
         {
             knight_position.x, 
@@ -59,7 +121,7 @@ int main(){
 
 
 
-
+        // knight_data = update_animation_data(knight_data, dT, 5);
         DrawTexturePro(knight, source_rectangle, destination_rectangle, Vector2{},0.f,WHITE);
 
         EndDrawing();
