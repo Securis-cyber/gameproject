@@ -13,8 +13,7 @@ int main()
     Vector2 map_position{0.0, 0.0};
     
 
-    Character knight;
-    knight.set_screen_position(window_dimensions[0],window_dimensions[1]);
+    Character knight{window_dimensions[0],window_dimensions[1]};
 
     SetTargetFPS(60);
 
