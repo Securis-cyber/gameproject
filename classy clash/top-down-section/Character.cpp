@@ -66,3 +66,12 @@ void Character::tick(float delta_time)
 
     DrawTexturePro(texture, source_rectangle, destination_rectangle, Vector2{}, 0.f, WHITE);
 };
+
+Rectangle Character::get_collision_rectangle(){
+    return Rectangle{
+        screen_position.x,
+        screen_position.y,
+        width*scale,
+        height*scale
+    };
+};

@@ -46,6 +46,13 @@ int main()
             {
                 knight.undo_movement();
             }
+        for (auto prop:props){
+
+            if (CheckCollisionRecs(prop.get_collision_rectangle(knight.get_world_position()), knight.get_collision_rectangle())){
+                knight.undo_movement();
+            }
+
+        }
 
         EndDrawing();
     }

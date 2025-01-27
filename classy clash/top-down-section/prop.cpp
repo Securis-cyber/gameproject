@@ -15,3 +15,15 @@ void Prop::Render(Vector2 knight_position)
     Vector2 screen_position{Vector2Subtract(world_position, knight_position) };
     DrawTextureEx(texture, screen_position, 0.f, scale, WHITE);
 }
+
+Rectangle Prop::get_collision_rectangle(Vector2 knight_position)
+{
+     Vector2 screen_position{Vector2Subtract(world_position, knight_position) };
+     return Rectangle{
+        screen_position.x,
+        screen_position.y,
+        texture.width*scale,
+        texture.height*scale
+     };
+
+}
