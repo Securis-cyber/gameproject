@@ -1,7 +1,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "Character.h"
-
+#include "prop.h"
 int main()
 {
 
@@ -15,6 +15,12 @@ int main()
 
     Character knight{window_dimensions[0],window_dimensions[1]};
 
+    Prop props[2]{
+        Prop{Vector2{600.f,300.f}, LoadTexture("nature_tileset/Rock.png")},
+        Prop{Vector2{400.f,500.f}, LoadTexture("nature_tileset/log.png")}
+    };
+
+
     SetTargetFPS(60);
 
     while (!WindowShouldClose())
@@ -25,6 +31,12 @@ int main()
         map_position = Vector2Scale(knight.get_world_position(), -1.f);
         ClearBackground(WHITE);
         DrawTextureEx(map, map_position, 0.0, map_scale, WHITE);
+        
+
+        // draw the props
+        for(auto prop : props){
+            prop.Render(knight.get_world_position());
+        }
         knight.tick(GetFrameTime());
         // check map boundaries
         if (knight.get_world_position().x < 0.f ||
