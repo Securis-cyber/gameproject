@@ -2,76 +2,85 @@
 #include "raymath.h"
 
 
-Character::Character(int window_width, int window_height)
+Character::Character(int window_width, int window_height) : 
+    window_width(window_width),
+    window_height(window_height)
 {
     width = texture.width/max_frames;
     height = texture.height;
-    
-    screen_position = {static_cast<float>(window_width) / 2.0f - scale * (0.5f * width),
-                       static_cast<float>(window_height) / 2.0f - scale * (0.5f * height)};
 }
 
-void Character::undo_movement()
-{
-    world_position = last_world_position;
-}
 
 void Character::tick(float delta_time)
 {
-    last_world_position = world_position;
-    Vector2 direction{};
+    if (!get_alive()) return;
+    // last_world_position = world_position;
     if (IsKeyDown(KEY_A))
-        direction.x -= 1.0;
+        velocity.x -= 1.0;
     if (IsKeyDown(KEY_D))
-        direction.x = +1.0;
+        velocity.x = +1.0;
     if (IsKeyDown(KEY_S))
-        direction.y += 1.0;
+        velocity.y += 1.0;
     if (IsKeyDown(KEY_W))
-        direction.y -= 1.0;
+        velocity.y -= 1.0;
+    Base_Character::tick(delta_time);
 
-    if (Vector2Length(direction) != 0.0)
+
+    Vector2 origin{};
+    Vector2 offset{};
+    float rotation{};
+
+    if (right_left > 0.f)
     {
-        // set position = position + direction
-        world_position = Vector2Add(world_position, Vector2Scale(Vector2Normalize(direction), speed));
-
-        direction.x < 0.f ? right_left = -1.f : right_left = 1.f;
-        texture = run;
+        origin = {0.f, weapon.height*scale};
+        offset = {35.f, 55.f};
+        rotation = IsMouseButtonDown(MOUSE_LEFT_BUTTON) ? 35.f : 0.f;
+        // rotation = 35.f;
+        weapon_collision_rectangle = {
+            get_screen_position().x + offset.x,
+            get_screen_position().y + offset.y - weapon.height*scale,
+            weapon.width * scale,
+            weapon.height * scale
+        };
     }
     else
     {
-        texture = idle;
+        origin = {weapon.width * scale, weapon.height * scale};
+        offset = {25.f, 55.f};
+        rotation = IsMouseButtonDown(MOUSE_LEFT_BUTTON) ? -35.f : 0.f;
+        weapon_collision_rectangle = {
+            get_screen_position().x + offset.x - weapon.width * scale,
+            get_screen_position().y + offset.y - weapon.height*scale,
+            weapon.width * scale,
+            weapon.height * scale
+        };
     }
+    
+    // draw the sword
+    Rectangle source{0.f,0.f, static_cast<float>(weapon.width)*right_left, static_cast<float>(weapon.height)};
+    Rectangle dest{get_screen_position().x + offset.x, get_screen_position().y + offset.y, weapon.width*scale, weapon.height*scale};
+    DrawTexturePro(weapon, source, dest, origin, rotation, WHITE);
 
-    // update animation frame
-    running_time += delta_time;
-    if (running_time >= update_time)
+    DrawRectangleLines(
+        weapon_collision_rectangle.x,
+        weapon_collision_rectangle.y,
+        weapon_collision_rectangle.width,
+        weapon_collision_rectangle.height,
+        RED);
+}
+
+Vector2 Character::get_screen_position()
+{
+    return Vector2{static_cast<float>(window_width) / 2.0f - scale * (0.5f * width),
+                    static_cast<float>(window_height) / 2.0f - scale * (0.5f * height)};
+}
+
+
+void Character::take_damage(float damage)
+{
+    health -= damage;
+    if(health <= 0.f)
     {
-        frame++;
-        running_time = 0.f;
-        if (frame > max_frames)
-            frame = 0;
+        set_alive(false);
     }
-    // movement, character doesnt move, map does
-    Rectangle source_rectangle{
-        frame * width,      // x
-        0.f,                                     // y
-        right_left * width, // width
-        height};                  // height
-
-    Rectangle destination_rectangle{
-        screen_position.x,
-        screen_position.y,
-        scale * width,
-        scale * height};
-
-    DrawTexturePro(texture, source_rectangle, destination_rectangle, Vector2{}, 0.f, WHITE);
-};
-
-Rectangle Character::get_collision_rectangle(){
-    return Rectangle{
-        screen_position.x,
-        screen_position.y,
-        width*scale,
-        height*scale
-    };
-};
+}
