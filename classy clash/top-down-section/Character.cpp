@@ -61,12 +61,7 @@ void Character::tick(float delta_time)
     Rectangle dest{get_screen_position().x + offset.x, get_screen_position().y + offset.y, weapon.width*scale, weapon.height*scale};
     DrawTexturePro(weapon, source, dest, origin, rotation, WHITE);
 
-    DrawRectangleLines(
-        weapon_collision_rectangle.x,
-        weapon_collision_rectangle.y,
-        weapon_collision_rectangle.width,
-        weapon_collision_rectangle.height,
-        RED);
+ 
 }
 
 Vector2 Character::get_screen_position()
